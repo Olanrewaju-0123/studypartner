@@ -31,6 +31,19 @@ func SetupNotesRoutes(router *gin.RouterGroup, database *sql.DB) {
 	}
 }
 
+// UploadNote godoc
+// @Summary Upload a note
+// @Description Upload a document (PDF, DOCX, TXT) and extract text content
+// @Tags Notes
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UploadRequest true "File upload data"
+// @Success 201 {object} db.Note "Note created successfully"
+// @Failure 400 {object} map[string]string "Invalid request data"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /notes/upload [post]
 func uploadNote(database *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req UploadRequest
@@ -102,6 +115,17 @@ func uploadNote(database *sql.DB) gin.HandlerFunc {
 	}
 }
 
+// GetUserNotes godoc
+// @Summary Get user notes
+// @Description Get all notes belonging to the authenticated user
+// @Tags Notes
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {array} db.Note "List of user notes"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /notes/ [get]
 func getUserNotes(database *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("userID")
@@ -131,6 +155,19 @@ func getUserNotes(database *sql.DB) gin.HandlerFunc {
 	}
 }
 
+// GetNote godoc
+// @Summary Get a specific note
+// @Description Get a specific note by ID
+// @Tags Notes
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Note ID"
+// @Success 200 {object} db.Note "Note details"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 404 {object} map[string]string "Note not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /notes/{id} [get]
 func getNote(database *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("userID")

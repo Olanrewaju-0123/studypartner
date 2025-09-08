@@ -38,6 +38,18 @@ func SetupAuthRoutes(router *gin.RouterGroup, database *sql.DB) {
 	}
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Create a new user account with email, password, and name
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "User registration data"
+// @Success 201 {object} AuthResponse "User created successfully"
+// @Failure 400 {object} map[string]string "Invalid request data"
+// @Failure 409 {object} map[string]string "User already exists"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /auth/register [post]
 func register(database *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req RegisterRequest
@@ -87,6 +99,18 @@ func register(database *sql.DB) gin.HandlerFunc {
 	}
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Authenticate user with email and password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "User login credentials"
+// @Success 200 {object} AuthResponse "Login successful"
+// @Failure 400 {object} map[string]string "Invalid request data"
+// @Failure 401 {object} map[string]string "Invalid credentials"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /auth/login [post]
 func login(database *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req LoginRequest
@@ -128,6 +152,17 @@ func login(database *sql.DB) gin.HandlerFunc {
 	}
 }
 
+// GetCurrentUser godoc
+// @Summary Get current user
+// @Description Get the current authenticated user's information
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} db.User "User information"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 404 {object} map[string]string "User not found"
+// @Router /auth/me [get]
 func getCurrentUser(database *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, exists := c.Get("userID")

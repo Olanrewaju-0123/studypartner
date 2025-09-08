@@ -1,0 +1,371 @@
+basePath: /api
+definitions:
+  auth.AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/db.User'
+    type: object
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  db.Note:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      file_type:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  db.Summary:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      note_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  db.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  notes.UploadRequest:
+    properties:
+      file:
+        description: Base64 encoded file
+        type: string
+      name:
+        type: string
+    required:
+    - file
+    - name
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: AI-powered study assistant API that helps students learn smarter by
+    generating summaries, flashcards, and quizzes from uploaded notes.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: AI Study Partner API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password
+      parameters:
+      - description: User login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - Authentication
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get the current authenticated user's information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User information
+          schema:
+            $ref: '#/definitions/db.User'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - Authentication
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with email, password, and name
+      parameters:
+      - description: User registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: User already exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - Authentication
+  /notes/:
+    get:
+      consumes:
+      - application/json
+      description: Get all notes belonging to the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user notes
+          schema:
+            items:
+              $ref: '#/definitions/db.Note'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user notes
+      tags:
+      - Notes
+  /notes/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific note by ID
+      parameters:
+      - description: Note ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Note details
+          schema:
+            $ref: '#/definitions/db.Note'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Note not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a specific note
+      tags:
+      - Notes
+  /notes/upload:
+    post:
+      consumes:
+      - application/json
+      description: Upload a document (PDF, DOCX, TXT) and extract text content
+      parameters:
+      - description: File upload data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/notes.UploadRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Note created successfully
+          schema:
+            $ref: '#/definitions/db.Note'
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload a note
+      tags:
+      - Notes
+  /study/notes/{id}/summary:
+    get:
+      consumes:
+      - application/json
+      description: Get the AI-generated summary for a specific note
+      parameters:
+      - description: Note ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Note summary
+          schema:
+            $ref: '#/definitions/db.Summary'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Note or summary not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get note summary
+      tags:
+      - Study Materials
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

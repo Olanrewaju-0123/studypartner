@@ -26,6 +26,18 @@ func SetupStudyRoutes(router *gin.RouterGroup, database *sql.DB) {
 	}
 }
 
+// GetSummary godoc
+// @Summary Get note summary
+// @Description Get the AI-generated summary for a specific note
+// @Tags Study Materials
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Note ID"
+// @Success 200 {object} db.Summary "Note summary"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 404 {object} map[string]string "Note or summary not found"
+// @Router /study/notes/{id}/summary [get]
 func getSummary(database *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("userID")
