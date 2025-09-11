@@ -31,14 +31,29 @@ func Initialize(databaseURL string) (*sql.DB, error) {
 }
 
 func RunMigrations(db *sql.DB) error {
+	// Check if vector extension is available
+	var vectorAvailable bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'vector')").Scan(&vectorAvailable)
+	if err != nil {
+		log.Printf("Warning: Could not check vector extension: %v", err)
+		vectorAvailable = false
+	}
+
 	migrations := []string{
 		createUsersTable,
-		createNotesTable,
 		createSummariesTable,
 		createFlashcardsTable,
 		createQuizzesTable,
 		createStudySessionsTable,
-		createIndexes,
+	}
+
+	// Add notes table with or without vector support
+	if vectorAvailable {
+		migrations = append([]string{createNotesTableWithVector}, migrations...)
+		migrations = append(migrations, createIndexesWithVector)
+	} else {
+		migrations = append([]string{createNotesTableWithoutVector}, migrations...)
+		migrations = append(migrations, createIndexesWithoutVector)
 	}
 
 	for _, migration := range migrations {
@@ -61,7 +76,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`
 
-const createNotesTable = `
+const createNotesTableWithVector = `
 CREATE TABLE IF NOT EXISTS notes (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -71,6 +86,19 @@ CREATE TABLE IF NOT EXISTS notes (
     file_name VARCHAR(255) NOT NULL,
     file_size BIGINT NOT NULL,
     embedding vector(384), -- For all-MiniLM-L6-v2 model
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
+
+const createNotesTableWithoutVector = `
+CREATE TABLE IF NOT EXISTS notes (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_size BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`
@@ -114,10 +142,20 @@ CREATE TABLE IF NOT EXISTS study_sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`
 
-const createIndexes = `
+const createIndexesWithVector = `
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
 CREATE INDEX IF NOT EXISTS idx_notes_embedding ON notes USING ivfflat (embedding vector_cosine_ops);
+CREATE INDEX IF NOT EXISTS idx_summaries_note_id ON summaries(note_id);
+CREATE INDEX IF NOT EXISTS idx_flashcards_note_id ON flashcards(note_id);
+CREATE INDEX IF NOT EXISTS idx_quizzes_note_id ON quizzes(note_id);
+CREATE INDEX IF NOT EXISTS idx_study_sessions_user_id ON study_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_study_sessions_note_id ON study_sessions(note_id);
+`
+
+const createIndexesWithoutVector = `
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
 CREATE INDEX IF NOT EXISTS idx_summaries_note_id ON summaries(note_id);
 CREATE INDEX IF NOT EXISTS idx_flashcards_note_id ON flashcards(note_id);
 CREATE INDEX IF NOT EXISTS idx_quizzes_note_id ON quizzes(note_id);
