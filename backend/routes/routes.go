@@ -11,11 +11,6 @@ import (
 )
 
 func SetupRoutes(router *gin.Engine, db *sql.DB) {
-	// Health check
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
-
 	// API routes
 	api := router.Group("/api")
 	{
