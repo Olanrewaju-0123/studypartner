@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/pgvector/pgvector-go"
 )
@@ -49,8 +50,11 @@ func callHuggingFaceEmbedding(text string) ([]float32, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	// Add your HuggingFace API key here
-	// req.Header.Set("Authorization", "Bearer YOUR_HUGGINGFACE_API_KEY")
+	
+	// Add HuggingFace API key if available
+	if apiKey := os.Getenv("HUGGINGFACE_API_KEY"); apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

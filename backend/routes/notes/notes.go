@@ -90,21 +90,37 @@ func uploadNote(database *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Generate embedding
-		embedding, err := services.GenerateEmbedding(content)
+		// Check if vector extension is available
+		var vectorAvailable bool
+		err = database.QueryRow("SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'vector')").Scan(&vectorAvailable)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate embedding"})
-			return
+			vectorAvailable = false
 		}
 
-		// Save note to database
 		var note db.Note
-		err = database.QueryRow(
-			`INSERT INTO notes (user_id, title, content, file_type, file_name, file_size, embedding) 
-			 VALUES ($1, $2, $3, $4, $5, $6, $7) 
-			 RETURNING id, user_id, title, content, file_type, file_name, file_size, created_at, updated_at`,
-			userID, req.Name, content, fileType, req.Name, len(fileData), embedding,
-		).Scan(&note.ID, &note.UserID, &note.Title, &note.Content, &note.FileType, &note.FileName, &note.FileSize, &note.CreatedAt, &note.UpdatedAt)
+		if vectorAvailable {
+			// Generate embedding and save with vector support
+			embedding, err := services.GenerateEmbedding(content)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate embedding"})
+				return
+			}
+
+			err = database.QueryRow(
+				`INSERT INTO notes (user_id, title, content, file_type, file_name, file_size, embedding) 
+				 VALUES ($1, $2, $3, $4, $5, $6, $7) 
+				 RETURNING id, user_id, title, content, file_type, file_name, file_size, created_at, updated_at`,
+				userID, req.Name, content, fileType, req.Name, len(fileData), embedding,
+			).Scan(&note.ID, &note.UserID, &note.Title, &note.Content, &note.FileType, &note.FileName, &note.FileSize, &note.CreatedAt, &note.UpdatedAt)
+		} else {
+			// Save note without embedding (vector extension not available)
+			err = database.QueryRow(
+				`INSERT INTO notes (user_id, title, content, file_type, file_name, file_size) 
+				 VALUES ($1, $2, $3, $4, $5, $6) 
+				 RETURNING id, user_id, title, content, file_type, file_name, file_size, created_at, updated_at`,
+				userID, req.Name, content, fileType, req.Name, len(fileData),
+			).Scan(&note.ID, &note.UserID, &note.Title, &note.Content, &note.FileType, &note.FileName, &note.FileSize, &note.CreatedAt, &note.UpdatedAt)
+		}
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save note"})
@@ -221,45 +237,90 @@ func searchNotes(database *sql.DB) gin.HandlerFunc {
 
 		userID, _ := c.Get("userID")
 
-		// Generate embedding for search query
-		queryEmbedding, err := services.GenerateEmbedding(req.Query)
+		// Check if vector extension is available
+		var vectorAvailable bool
+		err := database.QueryRow("SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'vector')").Scan(&vectorAvailable)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate query embedding"})
-			return
+			vectorAvailable = false
 		}
-
-		// Search using cosine similarity
-		rows, err := database.Query(
-			`SELECT id, user_id, title, content, file_type, file_name, file_size, created_at, updated_at,
-			 1 - (embedding <=> $1) as similarity
-			 FROM notes 
-			 WHERE user_id = $2 
-			 ORDER BY similarity DESC 
-			 LIMIT 10`,
-			queryEmbedding, userID,
-		)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search notes"})
-			return
-		}
-		defer rows.Close()
 
 		var results []struct {
 			db.Note
 			Similarity float64 `json:"similarity"`
 		}
 
-		for rows.Next() {
-			var result struct {
-				db.Note
-				Similarity float64 `json:"similarity"`
-			}
-			err := rows.Scan(&result.ID, &result.UserID, &result.Title, &result.Content, &result.FileType, &result.FileName, &result.FileSize, &result.CreatedAt, &result.UpdatedAt, &result.Similarity)
+		if vectorAvailable {
+			// Generate embedding for search query and use vector search
+			queryEmbedding, err := services.GenerateEmbedding(req.Query)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan search result"})
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate query embedding"})
 				return
 			}
-			results = append(results, result)
+
+			// Search using cosine similarity
+			rows, err := database.Query(
+				`SELECT id, user_id, title, content, file_type, file_name, file_size, created_at, updated_at,
+				 1 - (embedding <=> $1) as similarity
+				 FROM notes 
+				 WHERE user_id = $2 
+				 ORDER BY similarity DESC 
+				 LIMIT 10`,
+				queryEmbedding, userID,
+			)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search notes"})
+				return
+			}
+			defer rows.Close()
+
+			for rows.Next() {
+				var result struct {
+					db.Note
+					Similarity float64 `json:"similarity"`
+				}
+				err := rows.Scan(&result.ID, &result.UserID, &result.Title, &result.Content, &result.FileType, &result.FileName, &result.FileSize, &result.CreatedAt, &result.UpdatedAt, &result.Similarity)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan search result"})
+					return
+				}
+				results = append(results, result)
+			}
+		} else {
+			// Fallback to text search when vector extension is not available
+			rows, err := database.Query(
+				`SELECT id, user_id, title, content, file_type, file_name, file_size, created_at, updated_at,
+				 CASE 
+				   WHEN title ILIKE $1 THEN 1.0
+				   WHEN content ILIKE $1 THEN 0.8
+				   WHEN title ILIKE $2 THEN 0.6
+				   WHEN content ILIKE $2 THEN 0.4
+				   ELSE 0.0
+				 END as similarity
+				 FROM notes 
+				 WHERE user_id = $3 
+				   AND (title ILIKE $1 OR content ILIKE $1 OR title ILIKE $2 OR content ILIKE $2)
+				 ORDER BY similarity DESC 
+				 LIMIT 10`,
+				"%"+req.Query+"%", "%"+strings.Join(strings.Split(req.Query, " "), "%")+"%", userID,
+			)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search notes"})
+				return
+			}
+			defer rows.Close()
+
+			for rows.Next() {
+				var result struct {
+					db.Note
+					Similarity float64 `json:"similarity"`
+				}
+				err := rows.Scan(&result.ID, &result.UserID, &result.Title, &result.Content, &result.FileType, &result.FileName, &result.FileSize, &result.CreatedAt, &result.UpdatedAt, &result.Similarity)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan search result"})
+					return
+				}
+				results = append(results, result)
+			}
 		}
 
 		c.JSON(http.StatusOK, results)
