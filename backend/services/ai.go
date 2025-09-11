@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -30,20 +31,11 @@ type HuggingFaceResponse struct {
 
 // GenerateSummary creates a summary of the given text using AI
 func GenerateSummary(content string) (string, error) {
-	prompt := fmt.Sprintf(`Please provide a concise summary of the following text. Focus on the main points and key concepts:
-
-%s
-
-Summary:`, content)
-
-	// Try Ollama first, fallback to HuggingFace
-	summary, err := callOllama("llama2", prompt)
+	// Try AI services if available, otherwise create a simple summary
+	summary, err := callHuggingFace("microsoft/DialoGPT-medium", content)
 	if err != nil {
-		// Fallback to HuggingFace
-		summary, err = callHuggingFace("microsoft/DialoGPT-medium", prompt)
-		if err != nil {
-			return "", fmt.Errorf("failed to generate summary: %w", err)
-		}
+		// Fallback to simple text summarization
+		return createSimpleSummary(content), nil
 	}
 
 	return strings.TrimSpace(summary), nil
@@ -51,6 +43,7 @@ Summary:`, content)
 
 // GenerateFlashcards creates flashcards from the given text
 func GenerateFlashcards(content string) ([]FlashcardData, error) {
+	// Try AI services if available, otherwise create simple flashcards
 	prompt := fmt.Sprintf(`Create 5 flashcards from the following text. Each flashcard should have a clear question and a concise answer. Format the response as JSON with this structure:
 [
   {"question": "Question 1", "answer": "Answer 1"},
@@ -60,20 +53,17 @@ func GenerateFlashcards(content string) ([]FlashcardData, error) {
 Text:
 %s`, content)
 
-	response, err := callOllama("llama2", prompt)
+	response, err := callHuggingFace("microsoft/DialoGPT-medium", prompt)
 	if err != nil {
-		// Fallback to HuggingFace
-		response, err = callHuggingFace("microsoft/DialoGPT-medium", prompt)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate flashcards: %w", err)
-		}
+		// Fallback to simple flashcards
+		return createSimpleFlashcards(content), nil
 	}
 
 	// Parse JSON response
 	var flashcards []FlashcardData
 	if err := json.Unmarshal([]byte(response), &flashcards); err != nil {
 		// If JSON parsing fails, create simple flashcards
-		flashcards = createSimpleFlashcards(content)
+		return createSimpleFlashcards(content), nil
 	}
 
 	return flashcards, nil
@@ -81,6 +71,7 @@ Text:
 
 // GenerateQuiz creates quiz questions from the given text
 func GenerateQuiz(content string) ([]QuizData, error) {
+	// Try AI services if available, otherwise create simple quiz
 	prompt := fmt.Sprintf(`Create 5 multiple choice quiz questions from the following text. Each question should have 4 options (A, B, C, D) with one correct answer. Format the response as JSON with this structure:
 [
   {
@@ -93,20 +84,17 @@ func GenerateQuiz(content string) ([]QuizData, error) {
 Text:
 %s`, content)
 
-	response, err := callOllama("llama2", prompt)
+	response, err := callHuggingFace("microsoft/DialoGPT-medium", prompt)
 	if err != nil {
-		// Fallback to HuggingFace
-		response, err = callHuggingFace("microsoft/DialoGPT-medium", prompt)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate quiz: %w", err)
-		}
+		// Fallback to simple quiz
+		return createSimpleQuiz(content), nil
 	}
 
 	// Parse JSON response
 	var quiz []QuizData
 	if err := json.Unmarshal([]byte(response), &quiz); err != nil {
 		// If JSON parsing fails, create simple quiz
-		quiz = createSimpleQuiz(content)
+		return createSimpleQuiz(content), nil
 	}
 
 	return quiz, nil
@@ -161,8 +149,11 @@ func callHuggingFace(model, prompt string) (string, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	// Add your HuggingFace API key here
-	// req.Header.Set("Authorization", "Bearer YOUR_HUGGINGFACE_API_KEY")
+	
+	// Add HuggingFace API key if available
+	if apiKey := os.Getenv("HUGGINGFACE_API_KEY"); apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -188,6 +179,18 @@ func callHuggingFace(model, prompt string) (string, error) {
 	return "", fmt.Errorf("no response from HuggingFace")
 }
 
+// createSimpleSummary creates a basic summary when AI fails
+func createSimpleSummary(content string) string {
+	sentences := strings.Split(content, ".")
+	if len(sentences) <= 3 {
+		return content // If content is short, return as is
+	}
+	
+	// Take first 3 sentences as summary
+	summary := strings.Join(sentences[:3], ".") + "."
+	return summary
+}
+
 // createSimpleFlashcards creates basic flashcards when AI fails
 func createSimpleFlashcards(content string) []FlashcardData {
 	sentences := strings.Split(content, ".")
@@ -198,9 +201,27 @@ func createSimpleFlashcards(content string) []FlashcardData {
 			break
 		}
 		
+		cleanSentence := strings.TrimSpace(sentence)
+		if len(cleanSentence) > 0 {
+			question := "What is mentioned about: "
+			if len(cleanSentence) > 50 {
+				question += cleanSentence[:50] + "...?"
+			} else {
+				question += cleanSentence + "?"
+			}
+			
+			flashcards = append(flashcards, FlashcardData{
+				Question: question,
+				Answer:   cleanSentence,
+			})
+		}
+	}
+
+	// If no flashcards were created, create a default one
+	if len(flashcards) == 0 {
 		flashcards = append(flashcards, FlashcardData{
-			Question: fmt.Sprintf("What is mentioned about: %s?", strings.TrimSpace(sentence)[:min(50, len(strings.TrimSpace(sentence)))]),
-			Answer:   strings.TrimSpace(sentence),
+			Question: "What is the main content of this note?",
+			Answer:   content[:min(100, len(content))] + "...",
 		})
 	}
 
@@ -217,9 +238,26 @@ func createSimpleQuiz(content string) []QuizData {
 			break
 		}
 
+		cleanSentence := strings.TrimSpace(sentence)
+		if len(cleanSentence) > 0 {
+			question := "Which statement is correct?"
+			if len(cleanSentence) > 60 {
+				question = fmt.Sprintf("Which statement is correct about: %s?", cleanSentence[:60]+"...")
+			}
+			
+			quiz = append(quiz, QuizData{
+				Question: question,
+				Options:  []string{cleanSentence, "This is incorrect", "This is partially correct", "This is not mentioned"},
+				Answer:   0,
+			})
+		}
+	}
+
+	// If no quiz questions were created, create a default one
+	if len(quiz) == 0 {
 		quiz = append(quiz, QuizData{
-			Question: fmt.Sprintf("Which of the following is true about: %s?", strings.TrimSpace(sentence)[:min(50, len(strings.TrimSpace(sentence)))]),
-			Options:  []string{strings.TrimSpace(sentence), "Option B", "Option C", "Option D"},
+			Question: "What is the main topic of this note?",
+			Options:  []string{content[:min(50, len(content))] + "...", "Topic B", "Topic C", "Topic D"},
 			Answer:   0,
 		})
 	}
