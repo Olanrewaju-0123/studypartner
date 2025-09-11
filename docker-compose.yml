@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: studypartner
       POSTGRES_PASSWORD: studypartner123
     ports:
-      - "5432:5432"
+      - "5437:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

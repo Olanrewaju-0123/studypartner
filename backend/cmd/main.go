@@ -68,6 +68,14 @@ func main() {
 		c.Next()
 	})
 
+	// Health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "healthy",
+			"service": "AI Study Partner API",
+		})
+	})
+
 	// Setup routes
 	routes.SetupRoutes(router, database)
 
