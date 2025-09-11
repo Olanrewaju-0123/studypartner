@@ -6,6 +6,7 @@ import (
 	"log"
 
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var DB *sql.DB
@@ -63,6 +64,40 @@ func RunMigrations(db *sql.DB) error {
 	}
 
 	log.Println("Database migrations completed successfully")
+	return nil
+}
+
+// SeedTestData creates a test user for demo purposes
+func SeedTestData(db *sql.DB) error {
+	// Check if test user already exists
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = $1", "demo@studypartner.com").Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to check test user: %w", err)
+	}
+
+	if count > 0 {
+		log.Println("Test user already exists")
+		return nil
+	}
+
+	// Hash password for test user
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("demo123"), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash test password: %w", err)
+	}
+
+	// Create test user (password: "demo123")
+	_, err = db.Exec(`
+		INSERT INTO users (email, password, name) 
+		VALUES ($1, $2, $3)
+	`, "demo@studypartner.com", string(hashedPassword), "Demo User")
+
+	if err != nil {
+		return fmt.Errorf("failed to create test user: %w", err)
+	}
+
+	log.Println("Test user created successfully")
 	return nil
 }
 

@@ -58,6 +58,24 @@ export default function RegisterPage() {
     });
   };
 
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await apiClient.login({
+        email: "demo@studypartner.com",
+        password: "demo123",
+      });
+      apiClient.setToken(response.token);
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Demo login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Header */}
@@ -209,7 +227,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div>
+            <div className="space-y-3">
               <button
                 type="submit"
                 disabled={loading}
@@ -222,6 +240,22 @@ export default function RegisterPage() {
                   </>
                 ) : (
                   "Create account"
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={loading}
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "🚀 Demo Login"
                 )}
               </button>
             </div>
