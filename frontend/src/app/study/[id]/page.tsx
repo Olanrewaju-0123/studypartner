@@ -13,8 +13,8 @@ import {
 import Link from "next/link";
 import { apiClient } from "@/utils/api";
 import { Note, Summary, Flashcard, Quiz } from "@/types";
-import Flashcard from "@/components/Flashcard";
-import Quiz from "@/components/Quiz";
+import FlashcardComponent from "@/components/Flashcard";
+import QuizComponent from "@/components/Quiz";
 
 export default function StudyPage() {
   const params = useParams();
@@ -252,7 +252,7 @@ export default function StudyPage() {
             {activeTab === "flashcards" && (
               <div>
                 {flashcards.length > 0 ? (
-                  <Flashcard flashcards={flashcards} />
+                  <FlashcardComponent flashcards={flashcards} />
                 ) : (
                   <div className="text-center py-12">
                     <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -287,7 +287,7 @@ export default function StudyPage() {
             {activeTab === "quiz" && (
               <div>
                 {quiz.length > 0 ? (
-                  <Quiz quiz={quiz} />
+                  <QuizComponent quiz={quiz} />
                 ) : (
                   <div className="text-center py-12">
                     <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
