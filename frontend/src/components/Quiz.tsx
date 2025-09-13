@@ -138,18 +138,18 @@ export default function Quiz({ quiz }: QuizProps) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto px-4 sm:px-0">
       {/* Progress */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-gray-600 dark:text-gray-300">
+          <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
             Question {currentIndex + 1} of {quiz.length}
           </span>
           <button
             onClick={resetQuiz}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center"
+            className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center"
           >
-            <RotateCcw className="h-4 w-4 mr-1" />
+            <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
             Reset
           </button>
         </div>
@@ -162,8 +162,8 @@ export default function Quiz({ quiz }: QuizProps) {
       </div>
 
       {/* Question */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-6">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 mb-4 sm:mb-6">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">
           {currentQuestion.question}
         </h3>
 
@@ -180,7 +180,7 @@ export default function Quiz({ quiz }: QuizProps) {
                   onClick={() => handleAnswerSelect(index)}
                   disabled={showResults}
                   className={`
-                    w-full text-left p-4 rounded-lg border-2 transition-all
+                    w-full text-left p-3 sm:p-4 rounded-lg border-2 transition-all
                     ${
                       showResults
                         ? isCorrect
@@ -196,7 +196,7 @@ export default function Quiz({ quiz }: QuizProps) {
                   `}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
                       {String.fromCharCode(65 + index)}. {option || "No option text"}
                     </span>
                     {showResults && isCorrect && (
@@ -221,12 +221,12 @@ export default function Quiz({ quiz }: QuizProps) {
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mt-6 sm:mt-8">
         <button
           onClick={prevQuestion}
           disabled={currentIndex === 0}
           className={`
-            flex items-center px-4 py-2 rounded-lg transition-colors
+            flex items-center px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base
             ${
               currentIndex === 0
                 ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
@@ -234,16 +234,18 @@ export default function Quiz({ quiz }: QuizProps) {
             }
           `}
         >
-          <ChevronLeft className="h-5 w-5 mr-1" />
-          Previous
+          <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1" />
+          <span className="hidden sm:inline">Previous</span>
+          <span className="sm:hidden">Prev</span>
         </button>
 
         {!showResults && selectedAnswers[currentIndex] !== -1 && (
           <button
             onClick={showAnswer}
-            className="bg-green-600 dark:bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+            className="bg-green-600 dark:bg-green-500 text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors text-sm sm:text-base"
           >
-            Check Answer
+            <span className="hidden sm:inline">Check Answer</span>
+            <span className="sm:hidden">Check</span>
           </button>
         )}
 
@@ -251,7 +253,7 @@ export default function Quiz({ quiz }: QuizProps) {
           onClick={nextQuestion}
           disabled={selectedAnswers[currentIndex] === -1}
           className={`
-            flex items-center px-4 py-2 rounded-lg transition-colors
+            flex items-center px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base
             ${
               selectedAnswers[currentIndex] === -1
                 ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
@@ -259,8 +261,9 @@ export default function Quiz({ quiz }: QuizProps) {
             }
           `}
         >
-          {currentIndex === quiz.length - 1 ? "Finish" : "Next"}
-          <ChevronRight className="h-5 w-5 ml-1" />
+          <span className="hidden sm:inline">{currentIndex === quiz.length - 1 ? "Finish" : "Next"}</span>
+          <span className="sm:hidden">{currentIndex === quiz.length - 1 ? "End" : "Next"}</span>
+          <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-1" />
         </button>
       </div>
     </div>

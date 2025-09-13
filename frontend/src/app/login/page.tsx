@@ -70,19 +70,20 @@ export default function LoginPage() {
           <div className="flex items-center justify-between h-16">
             <Link
               href="/"
-              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm sm:text-base"
             >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Home
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Back to Home</span>
+              <span className="sm:hidden">Back</span>
             </Link>
             <ThemeToggle />
           </div>
         </div>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Sign in</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Sign in</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
             Or{" "}
             <Link
@@ -95,8 +96,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
+        <div className="bg-white dark:bg-gray-800 py-6 sm:py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">

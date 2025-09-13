@@ -149,16 +149,17 @@ export default function StudyPage() {
       <div className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0 flex-1">
               <Link
                 href="/"
-                className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm sm:text-base"
               >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Back to Home
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Back to Home</span>
+                <span className="sm:hidden">Back</span>
               </Link>
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white truncate max-w-md">
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white truncate mx-2 sm:mx-4 max-w-xs sm:max-w-md">
               {note.title}
             </h1>
             <div className="flex items-center">
@@ -169,13 +170,13 @@ export default function StudyPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Note Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{note.title}</h2>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">{note.title}</h2>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
                 {note.file_type.toUpperCase()} •{" "}
                 {(note.file_size / 1024).toFixed(1)} KB • Uploaded{" "}
                 {new Date(note.created_at).toLocaleDateString()}
@@ -185,9 +186,9 @@ export default function StudyPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6 sm:mb-8">
           <div className="border-b border-gray-200 dark:border-gray-700">
-            <nav className="-mb-px flex space-x-8 px-6">
+            <nav className="-mb-px flex space-x-4 sm:space-x-8 px-4 sm:px-6 overflow-x-auto">
               {[
                 { id: "summary", label: "Summary", icon: FileText },
                 { id: "flashcards", label: "Flashcards", icon: Target },
@@ -199,7 +200,7 @@ export default function StudyPage() {
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id as any)}
                     className={`
-                      flex items-center py-4 px-1 border-b-2 font-medium text-sm
+                      flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
                       ${
                         activeTab === tab.id
                           ? "border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400"
@@ -207,7 +208,7 @@ export default function StudyPage() {
                       }
                     `}
                   >
-                    <Icon className="h-5 w-5 mr-2" />
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
                     {tab.label}
                   </button>
                 );
@@ -216,7 +217,7 @@ export default function StudyPage() {
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {activeTab === "summary" && (
               <div>
                 {summary ? (
