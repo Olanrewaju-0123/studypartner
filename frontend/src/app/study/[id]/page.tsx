@@ -172,11 +172,11 @@ export default function StudyPage() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Note Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8 hover:shadow-md transition-all duration-300 ease-in-out">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">{note.title}</h2>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate transition-colors duration-300">{note.title}</h2>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1 transition-colors duration-300">
                 {note.file_type.toUpperCase()} •{" "}
                 {(note.file_size / 1024).toFixed(1)} KB • Uploaded{" "}
                 {new Date(note.created_at).toLocaleDateString()}
@@ -186,7 +186,7 @@ export default function StudyPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6 sm:mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6 sm:mb-8 hover:shadow-md transition-all duration-300 ease-in-out">
           <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="-mb-px flex space-x-4 sm:space-x-8 px-4 sm:px-6 overflow-x-auto">
               {[
@@ -200,7 +200,7 @@ export default function StudyPage() {
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id as any)}
                     className={`
-                      flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap
+                      flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-all duration-300 ease-in-out
                       ${
                         activeTab === tab.id
                           ? "border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400"

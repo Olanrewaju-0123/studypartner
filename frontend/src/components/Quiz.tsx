@@ -162,8 +162,8 @@ export default function Quiz({ quiz }: QuizProps) {
       </div>
 
       {/* Question */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 mb-4 sm:mb-6">
-        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 mb-4 sm:mb-6 hover:shadow-xl transition-all duration-300 ease-in-out">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 transition-colors duration-300">
           {currentQuestion.question}
         </h3>
 
@@ -180,7 +180,7 @@ export default function Quiz({ quiz }: QuizProps) {
                   onClick={() => handleAnswerSelect(index)}
                   disabled={showResults}
                   className={`
-                    w-full text-left p-3 sm:p-4 rounded-lg border-2 transition-all
+                    w-full text-left p-3 sm:p-4 rounded-lg border-2 transition-all duration-300 ease-in-out transform hover:scale-[1.02]
                     ${
                       showResults
                         ? isCorrect

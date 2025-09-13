@@ -118,40 +118,40 @@ export default function UploadPage() {
 
         {/* Features Preview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 sm:mt-12">
-          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-sm">
-            <div className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-in-out transform">
+            <div className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4 transition-transform duration-300 hover:scale-110">
               <span className="text-blue-600 dark:text-blue-400 font-bold text-lg sm:text-xl">📝</span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
               Smart Summaries
             </h3>
-            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-300">
               Get concise summaries that highlight key concepts and main points
               from your notes.
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-sm">
-            <div className="bg-green-100 dark:bg-green-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-in-out transform">
+            <div className="bg-green-100 dark:bg-green-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4 transition-transform duration-300 hover:scale-110">
               <span className="text-green-600 dark:text-green-400 font-bold text-lg sm:text-xl">🎯</span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
               Flashcards
             </h3>
-            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-300">
               Generate interactive flashcards with questions and answers to test
               your knowledge.
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-sm sm:col-span-2 lg:col-span-1">
-            <div className="bg-purple-100 dark:bg-purple-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+          <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-in-out transform sm:col-span-2 lg:col-span-1">
+            <div className="bg-purple-100 dark:bg-purple-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4 transition-transform duration-300 hover:scale-110">
               <span className="text-purple-600 dark:text-purple-400 font-bold text-lg sm:text-xl">❓</span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
               Quizzes
             </h3>
-            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm transition-colors duration-300">
               Create multiple choice quizzes to assess your understanding of the
               material.
             </p>

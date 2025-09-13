@@ -98,40 +98,40 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
-            <div className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+          <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out transform">
+            <div className="bg-blue-100 dark:bg-blue-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4 sm:mb-6 transition-transform duration-300 hover:scale-110">
               <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors duration-300">
               Smart Summaries
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 transition-colors duration-300">
               Get concise, comprehensive summaries of your notes that highlight
               key concepts and main points.
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
-            <div className="bg-green-100 dark:bg-green-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+          <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out transform">
+            <div className="bg-green-100 dark:bg-green-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4 sm:mb-6 transition-transform duration-300 hover:scale-110">
               <Target className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors duration-300">
               Flashcards
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 transition-colors duration-300">
               Generate interactive flashcards with questions and answers to test
               your knowledge and improve retention.
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg sm:col-span-2 lg:col-span-1">
-            <div className="bg-purple-100 dark:bg-purple-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+          <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out transform sm:col-span-2 lg:col-span-1">
+            <div className="bg-purple-100 dark:bg-purple-900/30 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-4 sm:mb-6 transition-transform duration-300 hover:scale-110">
               <Search className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors duration-300">
               Smart Search
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 transition-colors duration-300">
               Find relevant information across all your notes using semantic
               search powered by AI embeddings.
             </p>
@@ -152,50 +152,50 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            <div className="text-center">
-              <div className="bg-blue-600 dark:bg-blue-500 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl font-bold">
+            <div className="text-center group hover:scale-105 transition-all duration-300 ease-in-out">
+              <div className="bg-blue-600 dark:bg-blue-500 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl font-bold transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
                 1
               </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
                 Upload
               </h3>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 transition-colors duration-300">
                 Upload your PDF, DOCX, or TXT files
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="bg-blue-600 dark:bg-blue-500 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl font-bold">
+            <div className="text-center group hover:scale-105 transition-all duration-300 ease-in-out">
+              <div className="bg-blue-600 dark:bg-blue-500 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl font-bold transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
                 2
               </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
                 Process
               </h3>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 transition-colors duration-300">
                 AI extracts and analyzes your content
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="bg-blue-600 dark:bg-blue-500 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl font-bold">
+            <div className="text-center group hover:scale-105 transition-all duration-300 ease-in-out">
+              <div className="bg-blue-600 dark:bg-blue-500 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl font-bold transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
                 3
               </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
                 Generate
               </h3>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 transition-colors duration-300">
                 Get summaries, flashcards, and quizzes
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="bg-blue-600 dark:bg-blue-500 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl font-bold">
+            <div className="text-center group hover:scale-105 transition-all duration-300 ease-in-out">
+              <div className="bg-blue-600 dark:bg-blue-500 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl font-bold transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
                 4
               </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300">
                 Study
               </h3>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 transition-colors duration-300">
                 Study smarter with AI-powered materials
               </p>
             </div>

@@ -75,29 +75,29 @@ export default function Flashcard({ flashcards }: FlashcardProps) {
       <div className="relative">
         <div
           className={`
-            bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 min-h-[250px] sm:min-h-[300px] cursor-pointer transition-transform duration-500 transform-gpu
+            bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 min-h-[250px] sm:min-h-[300px] cursor-pointer transition-all duration-500 transform-gpu hover:shadow-xl hover:scale-[1.02]
             ${isFlipped ? "rotate-y-180" : ""}
           `}
           onClick={flipCard}
           style={{ transformStyle: "preserve-3d" }}
         >
-          <div className={`${isFlipped ? "hidden" : "block"}`}>
+          <div className={`${isFlipped ? "hidden" : "block"} transition-opacity duration-300`}>
             <div className="text-center">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 transition-colors duration-300">
                 Question
               </h3>
-              <p className="text-lg sm:text-xl text-gray-900 dark:text-white leading-relaxed">
+              <p className="text-lg sm:text-xl text-gray-900 dark:text-white leading-relaxed transition-colors duration-300">
                 {currentCard.question}
               </p>
             </div>
           </div>
 
-          <div className={`${isFlipped ? "block" : "hidden"}`}>
+          <div className={`${isFlipped ? "block" : "hidden"} transition-opacity duration-300`}>
             <div className="text-center">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 transition-colors duration-300">
                 Answer
               </h3>
-              <p className="text-lg sm:text-xl text-gray-900 dark:text-white leading-relaxed">
+              <p className="text-lg sm:text-xl text-gray-900 dark:text-white leading-relaxed transition-colors duration-300">
                 {currentCard.answer}
               </p>
             </div>
