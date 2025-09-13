@@ -250,9 +250,13 @@ func getQuiz(database *sql.DB) gin.HandlerFunc {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan quiz question"})
 				return
 			}
+			// Debug logging
+			fmt.Printf("Retrieved quiz question: ID=%d, Question=%s, Options=%v, Answer=%d\n", 
+				quiz.ID, quiz.Question, quiz.Options, quiz.Answer)
 			quizQuestions = append(quizQuestions, quiz)
 		}
 
+		fmt.Printf("Returning %d quiz questions\n", len(quizQuestions))
 		c.JSON(http.StatusOK, quizQuestions)
 	}
 }
@@ -289,7 +293,10 @@ func generateQuiz(database *sql.DB) gin.HandlerFunc {
 
 		// Insert new quiz questions
 		var insertedQuiz []db.Quiz
-		for _, q := range quizQuestions {
+		for i, q := range quizQuestions {
+			fmt.Printf("Saving quiz question %d: Question=%s, Options=%v, Answer=%d\n", 
+				i+1, q.Question, q.Options, q.Answer)
+			
 			var quiz db.Quiz
 			err = database.QueryRow(
 				"INSERT INTO quizzes (note_id, question, options, answer) VALUES ($1, $2, $3, $4) RETURNING id, note_id, question, options, answer, created_at",
@@ -301,6 +308,8 @@ func generateQuiz(database *sql.DB) gin.HandlerFunc {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save quiz question"})
 				return
 			}
+			
+			fmt.Printf("Successfully saved quiz question: ID=%d, Options=%v\n", quiz.ID, quiz.Options)
 			insertedQuiz = append(insertedQuiz, quiz)
 		}
 

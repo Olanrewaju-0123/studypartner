@@ -24,6 +24,13 @@ export default function Quiz({ quiz }: QuizProps) {
 
   const currentQuestion = quiz[currentIndex];
 
+  // Debug logging
+  console.log("Quiz component received:", quiz);
+  console.log("Current question:", currentQuestion);
+  if (currentQuestion) {
+    console.log("Current question options:", currentQuestion.options);
+  }
+
   const handleAnswerSelect = (answerIndex: number) => {
     if (showResults || quizCompleted) return;
 
@@ -159,46 +166,55 @@ export default function Quiz({ quiz }: QuizProps) {
         </h3>
 
         <div className="space-y-3">
-          {currentQuestion.options.map((option, index) => {
-            const isSelected = selectedAnswers[currentIndex] === index;
-            const isCorrect = index === currentQuestion.answer;
-            const isWrong = isSelected && !isCorrect;
+          {currentQuestion.options && currentQuestion.options.length > 0 ? (
+            currentQuestion.options.map((option, index) => {
+              const isSelected = selectedAnswers[currentIndex] === index;
+              const isCorrect = index === currentQuestion.answer;
+              const isWrong = isSelected && !isCorrect;
 
-            return (
-              <button
-                key={index}
-                onClick={() => handleAnswerSelect(index)}
-                disabled={showResults}
-                className={`
-                  w-full text-left p-4 rounded-lg border-2 transition-all
-                  ${
-                    showResults
-                      ? isCorrect
-                        ? "border-green-500 bg-green-50 text-green-900"
-                        : isWrong
-                        ? "border-red-500 bg-red-50 text-red-900"
-                        : "border-gray-200 bg-gray-50 text-gray-600"
-                      : isSelected
-                      ? "border-blue-500 bg-blue-50 text-blue-900"
-                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                  }
-                  ${showResults ? "cursor-default" : "cursor-pointer"}
-                `}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">
-                    {String.fromCharCode(65 + index)}. {option}
-                  </span>
-                  {showResults && isCorrect && (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  )}
-                  {showResults && isWrong && (
-                    <XCircle className="h-5 w-5 text-red-500" />
-                  )}
-                </div>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleAnswerSelect(index)}
+                  disabled={showResults}
+                  className={`
+                    w-full text-left p-4 rounded-lg border-2 transition-all
+                    ${
+                      showResults
+                        ? isCorrect
+                          ? "border-green-500 bg-green-50 text-green-900"
+                          : isWrong
+                          ? "border-red-500 bg-red-50 text-red-900"
+                          : "border-gray-200 bg-gray-50 text-gray-600"
+                        : isSelected
+                        ? "border-blue-500 bg-blue-50 text-blue-900"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }
+                    ${showResults ? "cursor-default" : "cursor-pointer"}
+                  `}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900">
+                      {String.fromCharCode(65 + index)}. {option || "No option text"}
+                    </span>
+                    {showResults && isCorrect && (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    )}
+                    {showResults && isWrong && (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-red-500">No quiz options available for this question.</p>
+              <p className="text-sm text-gray-500 mt-2">
+                This might be a data issue. Please try regenerating the quiz.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
