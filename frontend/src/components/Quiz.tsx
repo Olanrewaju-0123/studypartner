@@ -42,6 +42,7 @@ export default function Quiz({ quiz }: QuizProps) {
   const nextQuestion = () => {
     if (currentIndex < quiz.length - 1) {
       setCurrentIndex(currentIndex + 1);
+      setShowResults(false); // Reset showResults when moving to next question
     } else {
       setQuizCompleted(true);
     }
@@ -50,6 +51,7 @@ export default function Quiz({ quiz }: QuizProps) {
   const prevQuestion = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+      setShowResults(false); // Reset showResults when moving to previous question
     }
   };
 

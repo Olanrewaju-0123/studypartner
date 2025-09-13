@@ -27,7 +27,7 @@ func GenerateSummary(content string) (string, error) {
 	}
 
 	// Create a proper summarization prompt
-	prompt := fmt.Sprintf(`Please provide a comprehensive summary of the following text. The summary should be clear, well-structured, and capture the main points and key concepts:
+	prompt := fmt.Sprintf(`Please provide a comprehensive summary of the following text. The summary should be clear, well-structured, and capture the main points and key concepts. Do NOT just repeat the title, author, or abstract. Create a meaningful summary that explains the content:
 
 %s
 
@@ -253,8 +253,29 @@ func createSimpleSummary(content string) string {
 		return "No content available for summary."
 	}
 
+	// Remove common academic document headers that shouldn't be in summary
+	lines := strings.Split(content, "\n")
+	var meaningfulLines []string
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		// Skip lines that look like headers, emails, or metadata
+		if len(line) > 10 && 
+		   !strings.Contains(strings.ToLower(line), "@") && // Skip email lines
+		   !strings.Contains(strings.ToLower(line), "abstract:") && // Skip abstract headers
+		   !strings.Contains(strings.ToLower(line), "introduction:") && // Skip section headers
+		   !strings.Contains(strings.ToLower(line), "conclusion:") &&
+		   !strings.Contains(strings.ToLower(line), "references:") &&
+		   !strings.Contains(strings.ToLower(line), "bibliography:") {
+			meaningfulLines = append(meaningfulLines, line)
+		}
+	}
+	
+	// Join meaningful lines and split into sentences
+	meaningfulContent := strings.Join(meaningfulLines, " ")
+	
 	// Split into sentences using multiple delimiters
-	sentences := strings.FieldsFunc(content, func(c rune) bool {
+	sentences := strings.FieldsFunc(meaningfulContent, func(c rune) bool {
 		return c == '.' || c == '!' || c == '?'
 	})
 	
@@ -263,20 +284,23 @@ func createSimpleSummary(content string) string {
 	// Clean and filter sentences
 	for _, sentence := range sentences {
 		sentence = strings.TrimSpace(sentence)
-		if len(sentence) > 15 { // Only include meaningful sentences
+		if len(sentence) > 20 && // Only include meaningful sentences
+		   !strings.Contains(strings.ToLower(sentence), "abstract") && // Skip abstract references
+		   !strings.Contains(strings.ToLower(sentence), "introduction") &&
+		   !strings.Contains(strings.ToLower(sentence), "conclusion") {
 			cleanSentences = append(cleanSentences, sentence)
 		}
 	}
 
 	if len(cleanSentences) == 0 {
 		// If no good sentences, create a basic summary from the content
-		words := strings.Fields(content)
-		if len(words) > 20 {
-			// Take first 20 words as summary
-			summary := strings.Join(words[:20], " ")
+		words := strings.Fields(meaningfulContent)
+		if len(words) > 30 {
+			// Take first 30 words as summary
+			summary := strings.Join(words[:30], " ")
 			return summary + "..."
 		}
-		return content
+		return meaningfulContent
 	}
 
 	// Create a comprehensive summary
@@ -290,8 +314,8 @@ func createSimpleSummary(content string) string {
 	
 	summary := strings.Join(summarySentences, ". ") + "."
 	
-	// Ensure summary is substantial (at least 100 characters)
-	if len(summary) < 100 && len(cleanSentences) > maxSentences {
+	// Ensure summary is substantial (at least 150 characters)
+	if len(summary) < 150 && len(cleanSentences) > maxSentences {
 		// Add more sentences if summary is too short
 		additionalSentences := min(3, len(cleanSentences)-maxSentences)
 		for i := maxSentences; i < maxSentences+additionalSentences; i++ {
@@ -453,17 +477,33 @@ func createSimpleQuiz(content string) []QuizData {
 		options := make([]string, 4)
 		options[0] = sentence // Correct answer
 		
-		// Generate plausible but incorrect alternatives
+		// Generate plausible but incorrect alternatives based on question type
 		words := strings.Fields(sentence)
 		if len(words) > 3 {
 			// Create alternatives by modifying the sentence
-			options[1] = strings.Join(words[:len(words)/2], " ") + " with different context"
-			options[2] = "This statement is partially accurate but incomplete"
-			options[3] = "This statement is not mentioned in the original text"
+			switch i % 4 {
+			case 0:
+				options[1] = strings.Join(words[:len(words)/2], " ") + " with different context"
+				options[2] = "This statement is partially accurate but incomplete"
+				options[3] = "This statement is not mentioned in the original text"
+			case 1:
+				options[1] = "The opposite of this statement is true"
+				options[2] = "This is a common misconception"
+				options[3] = "This information is outdated"
+			case 2:
+				options[1] = "This applies only in specific circumstances"
+				options[2] = "This is a simplified explanation"
+				options[3] = "This contradicts the main argument"
+			default:
+				options[1] = "This is an example of the concept"
+				options[2] = "This is a supporting detail"
+				options[3] = "This is not the main point"
+			}
 		} else {
-			// Use template options for short sentences
-			options = template.options
-			options[0] = sentence // Override first option with correct answer
+			// Use template options for short sentences but make them unique
+			options[1] = template.options[1]
+			options[2] = template.options[2]
+			options[3] = template.options[3]
 		}
 		
 		quiz = append(quiz, QuizData{
