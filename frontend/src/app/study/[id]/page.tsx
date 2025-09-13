@@ -67,9 +67,12 @@ export default function StudyPage() {
   const generateFlashcards = async () => {
     try {
       setGenerating("flashcards");
+      setError(null); // Clear any previous errors
       const flashcardsData = await apiClient.generateFlashcards(noteId);
-      setFlashcards(flashcardsData);
+      console.log("Generated flashcards:", flashcardsData);
+      setFlashcards(flashcardsData || []);
     } catch (err) {
+      console.error("Flashcard generation error:", err);
       setError(
         err instanceof Error ? err.message : "Failed to generate flashcards"
       );
@@ -81,9 +84,12 @@ export default function StudyPage() {
   const generateQuiz = async () => {
     try {
       setGenerating("quiz");
+      setError(null); // Clear any previous errors
       const quizData = await apiClient.generateQuiz(noteId);
-      setQuiz(quizData);
+      console.log("Generated quiz:", quizData);
+      setQuiz(quizData || []);
     } catch (err) {
+      console.error("Quiz generation error:", err);
       setError(err instanceof Error ? err.message : "Failed to generate quiz");
     } finally {
       setGenerating(null);
@@ -258,7 +264,7 @@ export default function StudyPage() {
 
             {activeTab === "flashcards" && (
               <div>
-                {flashcards.length > 0 ? (
+                {flashcards && flashcards.length > 0 ? (
                   <FlashcardComponent flashcards={flashcards} />
                 ) : (
                   <div className="text-center py-12">
@@ -269,6 +275,11 @@ export default function StudyPage() {
                     <p className="text-gray-600 mb-6">
                       Generate interactive flashcards from your notes
                     </p>
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-red-600 text-sm">{error}</p>
+                      </div>
+                    )}
                     <button
                       onClick={generateFlashcards}
                       disabled={generating === "flashcards"}
@@ -293,7 +304,7 @@ export default function StudyPage() {
 
             {activeTab === "quiz" && (
               <div>
-                {quiz.length > 0 ? (
+                {quiz && quiz.length > 0 ? (
                   <QuizComponent quiz={quiz} />
                 ) : (
                   <div className="text-center py-12">
@@ -304,6 +315,11 @@ export default function StudyPage() {
                     <p className="text-gray-600 mb-6">
                       Generate a quiz to test your knowledge
                     </p>
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-red-600 text-sm">{error}</p>
+                      </div>
+                    )}
                     <button
                       onClick={generateQuiz}
                       disabled={generating === "quiz"}

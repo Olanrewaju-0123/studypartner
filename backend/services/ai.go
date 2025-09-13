@@ -36,8 +36,15 @@ func GenerateSummary(content string) (string, error) {
 		return "", fmt.Errorf("content cannot be empty")
 	}
 
+	// Create a proper summarization prompt
+	prompt := fmt.Sprintf(`Please provide a comprehensive summary of the following text. The summary should be clear, well-structured, and capture the main points and key concepts:
+
+%s
+
+Summary:`, content)
+
 	// Try AI services if available, otherwise create a simple summary
-	summary, err := callHuggingFace("microsoft/DialoGPT-medium", content)
+	summary, err := callHuggingFace("facebook/bart-large-cnn", prompt)
 	if err != nil {
 		// Log the error for debugging
 		fmt.Printf("HuggingFace API failed: %v, falling back to simple summary\n", err)
@@ -47,8 +54,8 @@ func GenerateSummary(content string) (string, error) {
 
 	// Validate the AI response
 	summary = strings.TrimSpace(summary)
-	if summary == "" {
-		fmt.Printf("AI returned empty summary, falling back to simple summary\n")
+	if summary == "" || len(summary) < 50 {
+		fmt.Printf("AI returned poor summary, falling back to simple summary\n")
 		return createSimpleSummary(content), nil
 	}
 
@@ -58,25 +65,51 @@ func GenerateSummary(content string) (string, error) {
 // GenerateFlashcards creates flashcards from the given text
 func GenerateFlashcards(content string) ([]FlashcardData, error) {
 	// Try AI services if available, otherwise create simple flashcards
-	prompt := fmt.Sprintf(`Create 5 flashcards from the following text. Each flashcard should have a clear question and a concise answer. Format the response as JSON with this structure:
+	prompt := fmt.Sprintf(`Create 5 educational flashcards from the following text. Each flashcard should have a clear, specific question and a concise, accurate answer. Format the response as valid JSON with this exact structure:
 [
-  {"question": "Question 1", "answer": "Answer 1"},
-  {"question": "Question 2", "answer": "Answer 2"}
+  {"question": "What is the main topic discussed?", "answer": "The main topic is..."},
+  {"question": "What are the key concepts?", "answer": "The key concepts include..."}
 ]
 
-Text:
-%s`, content)
+Text to create flashcards from:
+%s
+
+Return only the JSON array, no additional text:`, content)
 
 	response, err := callHuggingFace("microsoft/DialoGPT-medium", prompt)
 	if err != nil {
+		fmt.Printf("HuggingFace API failed for flashcards: %v, falling back to simple flashcards\n", err)
 		// Fallback to simple flashcards
 		return createSimpleFlashcards(content), nil
+	}
+
+	// Clean the response - remove any non-JSON text
+	response = strings.TrimSpace(response)
+	if strings.Contains(response, "```json") {
+		start := strings.Index(response, "```json") + 7
+		end := strings.Index(response[start:], "```")
+		if end != -1 {
+			response = response[start : start+end]
+		}
+	} else if strings.Contains(response, "```") {
+		start := strings.Index(response, "```") + 3
+		end := strings.Index(response[start:], "```")
+		if end != -1 {
+			response = response[start : start+end]
+		}
 	}
 
 	// Parse JSON response
 	var flashcards []FlashcardData
 	if err := json.Unmarshal([]byte(response), &flashcards); err != nil {
+		fmt.Printf("JSON parsing failed for flashcards: %v, falling back to simple flashcards\n", err)
 		// If JSON parsing fails, create simple flashcards
+		return createSimpleFlashcards(content), nil
+	}
+
+	// Validate flashcards
+	if len(flashcards) == 0 {
+		fmt.Printf("No flashcards generated, falling back to simple flashcards\n")
 		return createSimpleFlashcards(content), nil
 	}
 
@@ -86,28 +119,54 @@ Text:
 // GenerateQuiz creates quiz questions from the given text
 func GenerateQuiz(content string) ([]QuizData, error) {
 	// Try AI services if available, otherwise create simple quiz
-	prompt := fmt.Sprintf(`Create 5 multiple choice quiz questions from the following text. Each question should have 4 options (A, B, C, D) with one correct answer. Format the response as JSON with this structure:
+	prompt := fmt.Sprintf(`Create 5 multiple choice quiz questions from the following text. Each question should have 4 options with one correct answer. Format the response as valid JSON with this exact structure:
 [
   {
-    "question": "Question 1?",
+    "question": "What is the main topic discussed?",
     "options": ["Option A", "Option B", "Option C", "Option D"],
     "answer": 0
   }
 ]
 
-Text:
-%s`, content)
+Text to create quiz from:
+%s
+
+Return only the JSON array, no additional text:`, content)
 
 	response, err := callHuggingFace("microsoft/DialoGPT-medium", prompt)
 	if err != nil {
+		fmt.Printf("HuggingFace API failed for quiz: %v, falling back to simple quiz\n", err)
 		// Fallback to simple quiz
 		return createSimpleQuiz(content), nil
+	}
+
+	// Clean the response - remove any non-JSON text
+	response = strings.TrimSpace(response)
+	if strings.Contains(response, "```json") {
+		start := strings.Index(response, "```json") + 7
+		end := strings.Index(response[start:], "```")
+		if end != -1 {
+			response = response[start : start+end]
+		}
+	} else if strings.Contains(response, "```") {
+		start := strings.Index(response, "```") + 3
+		end := strings.Index(response[start:], "```")
+		if end != -1 {
+			response = response[start : start+end]
+		}
 	}
 
 	// Parse JSON response
 	var quiz []QuizData
 	if err := json.Unmarshal([]byte(response), &quiz); err != nil {
+		fmt.Printf("JSON parsing failed for quiz: %v, falling back to simple quiz\n", err)
 		// If JSON parsing fails, create simple quiz
+		return createSimpleQuiz(content), nil
+	}
+
+	// Validate quiz
+	if len(quiz) == 0 {
+		fmt.Printf("No quiz questions generated, falling back to simple quiz\n")
 		return createSimpleQuiz(content), nil
 	}
 
@@ -201,13 +260,49 @@ func callHuggingFace(model, prompt string) (string, error) {
 
 // createSimpleSummary creates a basic summary when AI fails
 func createSimpleSummary(content string) string {
+	// Clean the content
+	content = strings.TrimSpace(content)
+	if content == "" {
+		return "No content available for summary."
+	}
+
+	// Split into sentences
 	sentences := strings.Split(content, ".")
-	if len(sentences) <= 3 {
-		return content // If content is short, return as is
+	var cleanSentences []string
+	
+	// Clean and filter sentences
+	for _, sentence := range sentences {
+		sentence = strings.TrimSpace(sentence)
+		if len(sentence) > 10 { // Only include meaningful sentences
+			cleanSentences = append(cleanSentences, sentence)
+		}
+	}
+
+	if len(cleanSentences) == 0 {
+		return content // If no good sentences, return original
+	}
+
+	if len(cleanSentences) <= 3 {
+		// If content is short, return as is with proper formatting
+		return strings.Join(cleanSentences, ". ") + "."
 	}
 	
-	// Take first 3 sentences as summary
-	summary := strings.Join(sentences[:3], ".") + "."
+	// Take first 3-4 meaningful sentences as summary
+	summarySentences := cleanSentences
+	if len(cleanSentences) > 4 {
+		summarySentences = cleanSentences[:4]
+	}
+	
+	summary := strings.Join(summarySentences, ". ") + "."
+	
+	// Ensure summary is not too short
+	if len(summary) < 50 {
+		// Add more sentences if summary is too short
+		if len(cleanSentences) > 4 {
+			summary = strings.Join(cleanSentences[:min(6, len(cleanSentences))], ". ") + "."
+		}
+	}
+	
 	return summary
 }
 
