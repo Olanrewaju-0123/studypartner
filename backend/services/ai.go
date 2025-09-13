@@ -43,23 +43,31 @@ func GenerateSummary(content string) (string, error) {
 
 Summary:`, content)
 
-	// Try AI services if available, otherwise create a simple summary
-	summary, err := callHuggingFace("facebook/bart-large-cnn", prompt)
-	if err != nil {
-		// Log the error for debugging
-		fmt.Printf("HuggingFace API failed: %v, falling back to simple summary\n", err)
-		// Fallback to simple text summarization
-		return createSimpleSummary(content), nil
+	// Try multiple AI models for better results
+	models := []string{
+		"facebook/bart-large-cnn",
+		"google/pegasus-xsum",
+		"microsoft/DialoGPT-medium",
 	}
 
-	// Validate the AI response
-	summary = strings.TrimSpace(summary)
-	if summary == "" || len(summary) < 50 {
-		fmt.Printf("AI returned poor summary, falling back to simple summary\n")
-		return createSimpleSummary(content), nil
+	for _, model := range models {
+		summary, err := callHuggingFace(model, prompt)
+		if err != nil {
+			fmt.Printf("HuggingFace API failed for model %s: %v\n", model, err)
+			continue
+		}
+
+		// Validate the AI response
+		summary = strings.TrimSpace(summary)
+		if summary != "" && len(summary) >= 50 {
+			fmt.Printf("Successfully generated summary using model %s\n", model)
+			return summary, nil
+		}
 	}
 
-	return summary, nil
+	// If all AI models fail, use enhanced fallback
+	fmt.Printf("All AI models failed, using enhanced fallback summary\n")
+	return createSimpleSummary(content), nil
 }
 
 // GenerateFlashcards creates flashcards from the given text
@@ -76,44 +84,53 @@ Text to create flashcards from:
 
 Return only the JSON array, no additional text:`, content)
 
-	response, err := callHuggingFace("microsoft/DialoGPT-medium", prompt)
-	if err != nil {
-		fmt.Printf("HuggingFace API failed for flashcards: %v, falling back to simple flashcards\n", err)
-		// Fallback to simple flashcards
-		return createSimpleFlashcards(content), nil
+	// Try multiple AI models for better results
+	models := []string{
+		"microsoft/DialoGPT-medium",
+		"facebook/bart-large-cnn",
+		"google/pegasus-xsum",
 	}
 
-	// Clean the response - remove any non-JSON text
-	response = strings.TrimSpace(response)
-	if strings.Contains(response, "```json") {
-		start := strings.Index(response, "```json") + 7
-		end := strings.Index(response[start:], "```")
-		if end != -1 {
-			response = response[start : start+end]
+	for _, model := range models {
+		response, err := callHuggingFace(model, prompt)
+		if err != nil {
+			fmt.Printf("HuggingFace API failed for flashcards with model %s: %v\n", model, err)
+			continue
 		}
-	} else if strings.Contains(response, "```") {
-		start := strings.Index(response, "```") + 3
-		end := strings.Index(response[start:], "```")
-		if end != -1 {
-			response = response[start : start+end]
+
+		// Clean the response - remove any non-JSON text
+		response = strings.TrimSpace(response)
+		if strings.Contains(response, "```json") {
+			start := strings.Index(response, "```json") + 7
+			end := strings.Index(response[start:], "```")
+			if end != -1 {
+				response = response[start : start+end]
+			}
+		} else if strings.Contains(response, "```") {
+			start := strings.Index(response, "```") + 3
+			end := strings.Index(response[start:], "```")
+			if end != -1 {
+				response = response[start : start+end]
+			}
+		}
+
+		// Parse JSON response
+		var flashcards []FlashcardData
+		if err := json.Unmarshal([]byte(response), &flashcards); err != nil {
+			fmt.Printf("JSON parsing failed for flashcards with model %s: %v\n", model, err)
+			continue
+		}
+
+		// Validate flashcards
+		if len(flashcards) > 0 {
+			fmt.Printf("Successfully generated flashcards using model %s\n", model)
+			return flashcards, nil
 		}
 	}
 
-	// Parse JSON response
-	var flashcards []FlashcardData
-	if err := json.Unmarshal([]byte(response), &flashcards); err != nil {
-		fmt.Printf("JSON parsing failed for flashcards: %v, falling back to simple flashcards\n", err)
-		// If JSON parsing fails, create simple flashcards
-		return createSimpleFlashcards(content), nil
-	}
-
-	// Validate flashcards
-	if len(flashcards) == 0 {
-		fmt.Printf("No flashcards generated, falling back to simple flashcards\n")
-		return createSimpleFlashcards(content), nil
-	}
-
-	return flashcards, nil
+	// If all AI models fail, use enhanced fallback
+	fmt.Printf("All AI models failed for flashcards, using enhanced fallback\n")
+	return createSimpleFlashcards(content), nil
 }
 
 // GenerateQuiz creates quiz questions from the given text
@@ -133,44 +150,53 @@ Text to create quiz from:
 
 Return only the JSON array, no additional text:`, content)
 
-	response, err := callHuggingFace("microsoft/DialoGPT-medium", prompt)
-	if err != nil {
-		fmt.Printf("HuggingFace API failed for quiz: %v, falling back to simple quiz\n", err)
-		// Fallback to simple quiz
-		return createSimpleQuiz(content), nil
+	// Try multiple AI models for better results
+	models := []string{
+		"microsoft/DialoGPT-medium",
+		"facebook/bart-large-cnn",
+		"google/pegasus-xsum",
 	}
 
-	// Clean the response - remove any non-JSON text
-	response = strings.TrimSpace(response)
-	if strings.Contains(response, "```json") {
-		start := strings.Index(response, "```json") + 7
-		end := strings.Index(response[start:], "```")
-		if end != -1 {
-			response = response[start : start+end]
+	for _, model := range models {
+		response, err := callHuggingFace(model, prompt)
+		if err != nil {
+			fmt.Printf("HuggingFace API failed for quiz with model %s: %v\n", model, err)
+			continue
 		}
-	} else if strings.Contains(response, "```") {
-		start := strings.Index(response, "```") + 3
-		end := strings.Index(response[start:], "```")
-		if end != -1 {
-			response = response[start : start+end]
+
+		// Clean the response - remove any non-JSON text
+		response = strings.TrimSpace(response)
+		if strings.Contains(response, "```json") {
+			start := strings.Index(response, "```json") + 7
+			end := strings.Index(response[start:], "```")
+			if end != -1 {
+				response = response[start : start+end]
+			}
+		} else if strings.Contains(response, "```") {
+			start := strings.Index(response, "```") + 3
+			end := strings.Index(response[start:], "```")
+			if end != -1 {
+				response = response[start : start+end]
+			}
+		}
+
+		// Parse JSON response
+		var quiz []QuizData
+		if err := json.Unmarshal([]byte(response), &quiz); err != nil {
+			fmt.Printf("JSON parsing failed for quiz with model %s: %v\n", model, err)
+			continue
+		}
+
+		// Validate quiz
+		if len(quiz) > 0 {
+			fmt.Printf("Successfully generated quiz using model %s\n", model)
+			return quiz, nil
 		}
 	}
 
-	// Parse JSON response
-	var quiz []QuizData
-	if err := json.Unmarshal([]byte(response), &quiz); err != nil {
-		fmt.Printf("JSON parsing failed for quiz: %v, falling back to simple quiz\n", err)
-		// If JSON parsing fails, create simple quiz
-		return createSimpleQuiz(content), nil
-	}
-
-	// Validate quiz
-	if len(quiz) == 0 {
-		fmt.Printf("No quiz questions generated, falling back to simple quiz\n")
-		return createSimpleQuiz(content), nil
-	}
-
-	return quiz, nil
+	// If all AI models fail, use enhanced fallback
+	fmt.Printf("All AI models failed for quiz, using enhanced fallback\n")
+	return createSimpleQuiz(content), nil
 }
 
 // callOllama makes a request to the local Ollama API
@@ -258,7 +284,7 @@ func callHuggingFace(model, prompt string) (string, error) {
 	return "", fmt.Errorf("no response from HuggingFace")
 }
 
-// createSimpleSummary creates a basic summary when AI fails
+// createSimpleSummary creates a comprehensive summary when AI fails
 func createSimpleSummary(content string) string {
 	// Clean the content
 	content = strings.TrimSpace(content)
@@ -266,115 +292,228 @@ func createSimpleSummary(content string) string {
 		return "No content available for summary."
 	}
 
-	// Split into sentences
-	sentences := strings.Split(content, ".")
+	// Split into sentences using multiple delimiters
+	sentences := strings.FieldsFunc(content, func(c rune) bool {
+		return c == '.' || c == '!' || c == '?'
+	})
+	
 	var cleanSentences []string
 	
 	// Clean and filter sentences
 	for _, sentence := range sentences {
 		sentence = strings.TrimSpace(sentence)
-		if len(sentence) > 10 { // Only include meaningful sentences
+		if len(sentence) > 15 { // Only include meaningful sentences
 			cleanSentences = append(cleanSentences, sentence)
 		}
 	}
 
 	if len(cleanSentences) == 0 {
-		return content // If no good sentences, return original
+		// If no good sentences, create a basic summary from the content
+		words := strings.Fields(content)
+		if len(words) > 20 {
+			// Take first 20 words as summary
+			summary := strings.Join(words[:20], " ")
+			return summary + "..."
+		}
+		return content
 	}
 
-	if len(cleanSentences) <= 3 {
-		// If content is short, return as is with proper formatting
-		return strings.Join(cleanSentences, ". ") + "."
-	}
+	// Create a comprehensive summary
+	var summarySentences []string
 	
-	// Take first 3-4 meaningful sentences as summary
-	summarySentences := cleanSentences
-	if len(cleanSentences) > 4 {
-		summarySentences = cleanSentences[:4]
+	// Take first 5-7 meaningful sentences for a good summary
+	maxSentences := min(7, len(cleanSentences))
+	for i := 0; i < maxSentences; i++ {
+		summarySentences = append(summarySentences, cleanSentences[i])
 	}
 	
 	summary := strings.Join(summarySentences, ". ") + "."
 	
-	// Ensure summary is not too short
-	if len(summary) < 50 {
+	// Ensure summary is substantial (at least 100 characters)
+	if len(summary) < 100 && len(cleanSentences) > maxSentences {
 		// Add more sentences if summary is too short
-		if len(cleanSentences) > 4 {
-			summary = strings.Join(cleanSentences[:min(6, len(cleanSentences))], ". ") + "."
+		additionalSentences := min(3, len(cleanSentences)-maxSentences)
+		for i := maxSentences; i < maxSentences+additionalSentences; i++ {
+			summarySentences = append(summarySentences, cleanSentences[i])
 		}
+		summary = strings.Join(summarySentences, ". ") + "."
 	}
 	
 	return summary
 }
 
-// createSimpleFlashcards creates basic flashcards when AI fails
+// createSimpleFlashcards creates comprehensive flashcards when AI fails
 func createSimpleFlashcards(content string) []FlashcardData {
-	sentences := strings.Split(content, ".")
+	// Split into sentences using multiple delimiters
+	sentences := strings.FieldsFunc(content, func(c rune) bool {
+		return c == '.' || c == '!' || c == '?'
+	})
+	
 	var flashcards []FlashcardData
+	var processedSentences []string
 
-	for i, sentence := range sentences {
-		if i >= 5 || len(strings.TrimSpace(sentence)) < 10 {
-			break
-		}
-		
-		cleanSentence := strings.TrimSpace(sentence)
-		if len(cleanSentence) > 0 {
-			question := "What is mentioned about: "
-			if len(cleanSentence) > 50 {
-				question += cleanSentence[:50] + "...?"
-			} else {
-				question += cleanSentence + "?"
-			}
-			
-			flashcards = append(flashcards, FlashcardData{
-				Question: question,
-				Answer:   cleanSentence,
-			})
+	// Clean and filter sentences
+	for _, sentence := range sentences {
+		sentence = strings.TrimSpace(sentence)
+		if len(sentence) > 20 { // Only include meaningful sentences
+			processedSentences = append(processedSentences, sentence)
 		}
 	}
 
-	// If no flashcards were created, create a default one
-	if len(flashcards) == 0 {
+	// Create flashcards from meaningful sentences
+	for i, sentence := range processedSentences {
+		if i >= 8 { // Create up to 8 flashcards
+			break
+		}
+		
+		// Create different types of questions
+		var question string
+		if i%3 == 0 {
+			question = "What is the main point about: " + sentence[:min(40, len(sentence))] + "?"
+		} else if i%3 == 1 {
+			question = "Explain the concept: " + sentence[:min(35, len(sentence))] + "?"
+		} else {
+			question = "What does this statement mean: " + sentence[:min(45, len(sentence))] + "?"
+		}
+		
 		flashcards = append(flashcards, FlashcardData{
-			Question: "What is the main content of this note?",
-			Answer:   content[:min(100, len(content))] + "...",
+			Question: question,
+			Answer:   sentence,
 		})
+	}
+
+	// If no flashcards were created, create comprehensive ones from content
+	if len(flashcards) == 0 {
+		words := strings.Fields(content)
+		if len(words) > 10 {
+			// Create flashcards from word chunks
+			chunkSize := len(words) / 5
+			if chunkSize < 5 {
+				chunkSize = 5
+			}
+			
+			for i := 0; i < 5 && i*chunkSize < len(words); i++ {
+				start := i * chunkSize
+				end := min((i+1)*chunkSize, len(words))
+				chunk := strings.Join(words[start:end], " ")
+				
+				flashcards = append(flashcards, FlashcardData{
+					Question: fmt.Sprintf("What is discussed in this section: %s?", chunk[:min(30, len(chunk))]),
+					Answer:   chunk,
+				})
+			}
+		} else {
+			// Fallback for very short content
+			flashcards = append(flashcards, FlashcardData{
+				Question: "What is the main content of this note?",
+				Answer:   content,
+			})
+		}
 	}
 
 	return flashcards
 }
 
-// createSimpleQuiz creates basic quiz when AI fails
+// createSimpleQuiz creates comprehensive quiz when AI fails
 func createSimpleQuiz(content string) []QuizData {
-	sentences := strings.Split(content, ".")
+	// Split into sentences using multiple delimiters
+	sentences := strings.FieldsFunc(content, func(c rune) bool {
+		return c == '.' || c == '!' || c == '?'
+	})
+	
 	var quiz []QuizData
+	var processedSentences []string
 
-	for i, sentence := range sentences {
-		if i >= 5 || len(strings.TrimSpace(sentence)) < 10 {
-			break
-		}
-
-		cleanSentence := strings.TrimSpace(sentence)
-		if len(cleanSentence) > 0 {
-			question := "Which statement is correct?"
-			if len(cleanSentence) > 60 {
-				question = fmt.Sprintf("Which statement is correct about: %s?", cleanSentence[:60]+"...")
-			}
-			
-			quiz = append(quiz, QuizData{
-				Question: question,
-				Options:  []string{cleanSentence, "This is incorrect", "This is partially correct", "This is not mentioned"},
-				Answer:   0,
-			})
+	// Clean and filter sentences
+	for _, sentence := range sentences {
+		sentence = strings.TrimSpace(sentence)
+		if len(sentence) > 25 { // Only include meaningful sentences
+			processedSentences = append(processedSentences, sentence)
 		}
 	}
 
-	// If no quiz questions were created, create a default one
-	if len(quiz) == 0 {
+	// Create quiz questions from meaningful sentences
+	for i, sentence := range processedSentences {
+		if i >= 6 { // Create up to 6 quiz questions
+			break
+		}
+		
+		// Create different types of questions
+		var question string
+		var options []string
+		
+		if i%3 == 0 {
+			question = fmt.Sprintf("What is the main point about: %s?", sentence[:min(40, len(sentence))])
+			options = []string{
+				sentence,
+				"This statement is incorrect",
+				"This is only partially true",
+				"This is not mentioned in the text",
+			}
+		} else if i%3 == 1 {
+			question = fmt.Sprintf("Which statement best describes: %s?", sentence[:min(35, len(sentence))])
+			options = []string{
+				sentence,
+				"The opposite of this statement",
+				"This is a false statement",
+				"This is not relevant to the topic",
+			}
+		} else {
+			question = fmt.Sprintf("What does this mean: %s?", sentence[:min(45, len(sentence))])
+			options = []string{
+				sentence,
+				"This is a misunderstanding",
+				"This is partially correct",
+				"This is completely wrong",
+			}
+		}
+		
 		quiz = append(quiz, QuizData{
-			Question: "What is the main topic of this note?",
-			Options:  []string{content[:min(50, len(content))] + "...", "Topic B", "Topic C", "Topic D"},
-			Answer:   0,
+			Question: question,
+			Options:  options,
+			Answer:   0, // First option is always correct
 		})
+	}
+
+	// If no quiz questions were created, create comprehensive ones from content
+	if len(quiz) == 0 {
+		words := strings.Fields(content)
+		if len(words) > 15 {
+			// Create quiz questions from word chunks
+			chunkSize := len(words) / 5
+			if chunkSize < 8 {
+				chunkSize = 8
+			}
+			
+			for i := 0; i < 5 && i*chunkSize < len(words); i++ {
+				start := i * chunkSize
+				end := min((i+1)*chunkSize, len(words))
+				chunk := strings.Join(words[start:end], " ")
+				
+				quiz = append(quiz, QuizData{
+					Question: fmt.Sprintf("What is discussed in this section: %s?", chunk[:min(30, len(chunk))]),
+					Options: []string{
+						chunk,
+						"This section discusses something else",
+						"This is not mentioned in the text",
+						"This is a different topic entirely",
+					},
+					Answer: 0,
+				})
+			}
+		} else {
+			// Fallback for very short content
+			quiz = append(quiz, QuizData{
+				Question: "What is the main topic of this note?",
+				Options: []string{
+					content,
+					"This is about a different topic",
+					"This is not relevant",
+					"This is incorrect information",
+				},
+				Answer: 0,
+			})
+		}
 	}
 
 	return quiz
