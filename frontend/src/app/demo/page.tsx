@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft, FileText, Target, Brain, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function DemoPage() {
   const [activeDemo, setActiveDemo] = useState<string | null>(null);
@@ -63,21 +64,24 @@ Key concepts include features, training data, models, and evaluation metrics. Th
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <Link
                 href="/"
-                className="flex items-center text-gray-600 hover:text-gray-900"
+                className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back to Home
               </Link>
             </div>
-            <h1 className="text-xl font-semibold text-gray-900">Demo</h1>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Demo</h1>
+            <div className="flex items-center">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
