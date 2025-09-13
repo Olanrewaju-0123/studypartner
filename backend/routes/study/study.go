@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"studypartner/db"
 	"studypartner/middleware"
@@ -106,7 +107,13 @@ func generateSummary(database *sql.DB) gin.HandlerFunc {
 		if err != nil {
 			// Log the actual error for debugging
 			fmt.Printf("Failed to save summary for note %s: %v\n", noteID, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save summary"})
+			
+			// Check if it's a constraint error
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique constraint") {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Database constraint error - please contact support"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save summary"})
+			}
 			return
 		}
 

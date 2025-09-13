@@ -63,7 +63,57 @@ func RunMigrations(db *sql.DB) error {
 		}
 	}
 
+	// Run additional migrations for existing tables
+	if err := runAdditionalMigrations(db); err != nil {
+		return fmt.Errorf("failed to run additional migrations: %w", err)
+	}
+
 	log.Println("Database migrations completed successfully")
+	return nil
+}
+
+// runAdditionalMigrations handles migrations for existing tables
+func runAdditionalMigrations(db *sql.DB) error {
+	// Check if summaries table exists and add UNIQUE constraint if missing
+	var constraintExists bool
+	err := db.QueryRow(`
+		SELECT EXISTS (
+			SELECT 1 FROM information_schema.table_constraints 
+			WHERE table_name = 'summaries' 
+			AND constraint_name = 'summaries_note_id_unique'
+		)
+	`).Scan(&constraintExists)
+
+	if err != nil {
+		log.Printf("Warning: Could not check summaries constraint: %v", err)
+		return nil
+	}
+
+	if !constraintExists {
+		log.Println("Adding UNIQUE constraint to summaries.note_id...")
+		
+		// Remove any duplicate entries first
+		_, err = db.Exec(`
+			DELETE FROM summaries 
+			WHERE id NOT IN (
+				SELECT MAX(id) 
+				FROM summaries 
+				GROUP BY note_id
+			)
+		`)
+		if err != nil {
+			log.Printf("Warning: Could not remove duplicate summaries: %v", err)
+		}
+
+		// Add UNIQUE constraint
+		_, err = db.Exec("ALTER TABLE summaries ADD CONSTRAINT summaries_note_id_unique UNIQUE (note_id)")
+		if err != nil {
+			log.Printf("Warning: Could not add UNIQUE constraint to summaries: %v", err)
+		} else {
+			log.Println("Successfully added UNIQUE constraint to summaries.note_id")
+		}
+	}
+
 	return nil
 }
 
