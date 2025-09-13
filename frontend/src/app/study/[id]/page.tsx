@@ -15,6 +15,7 @@ import { apiClient } from "@/utils/api";
 import { Note, Summary, Flashcard, Quiz } from "@/types";
 import FlashcardComponent from "@/components/Flashcard";
 import QuizComponent from "@/components/Quiz";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function StudyPage() {
   const params = useParams();
@@ -143,23 +144,26 @@ export default function StudyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <Link
                 href="/"
-                className="flex items-center text-gray-600 hover:text-gray-900"
+                className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back to Home
               </Link>
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 truncate max-w-md">
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white truncate max-w-md">
               {note.title}
             </h1>
+            <div className="flex items-center">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
@@ -167,11 +171,11 @@ export default function StudyPage() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Note Info */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{note.title}</h2>
-              <p className="text-gray-600 mt-1">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{note.title}</h2>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">
                 {note.file_type.toUpperCase()} •{" "}
                 {(note.file_size / 1024).toFixed(1)} KB • Uploaded{" "}
                 {new Date(note.created_at).toLocaleDateString()}
@@ -181,8 +185,8 @@ export default function StudyPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-8">
-          <div className="border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-8">
+          <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="-mb-px flex space-x-8 px-6">
               {[
                 { id: "summary", label: "Summary", icon: FileText },
@@ -198,8 +202,8 @@ export default function StudyPage() {
                       flex items-center py-4 px-1 border-b-2 font-medium text-sm
                       ${
                         activeTab === tab.id
-                          ? "border-blue-500 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                          ? "border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400"
+                          : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
                       }
                     `}
                   >
@@ -217,33 +221,33 @@ export default function StudyPage() {
               <div>
                 {summary ? (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                       Summary
                     </h3>
                     <div className="prose max-w-none">
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                         {summary.content}
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                       No Summary Yet
                     </h3>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
                       Generate an AI-powered summary of your notes
                     </p>
                     {error && (
-                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-red-600 text-sm">{error}</p>
+                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                       </div>
                     )}
                     <button
                       onClick={generateSummary}
                       disabled={generating === "summary"}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center mx-auto"
+                      className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 flex items-center mx-auto"
                     >
                       {generating === "summary" ? (
                         <>
@@ -268,22 +272,22 @@ export default function StudyPage() {
                   <FlashcardComponent flashcards={flashcards} />
                 ) : (
                   <div className="text-center py-12">
-                    <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <Target className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                       No Flashcards Yet
                     </h3>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
                       Generate interactive flashcards from your notes
                     </p>
                     {error && (
-                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-red-600 text-sm">{error}</p>
+                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                       </div>
                     )}
                     <button
                       onClick={generateFlashcards}
                       disabled={generating === "flashcards"}
-                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center mx-auto"
+                      className="bg-green-600 dark:bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 flex items-center mx-auto"
                     >
                       {generating === "flashcards" ? (
                         <>
@@ -308,22 +312,22 @@ export default function StudyPage() {
                   <QuizComponent quiz={quiz} />
                 ) : (
                   <div className="text-center py-12">
-                    <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <Brain className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                       No Quiz Yet
                     </h3>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
                       Generate a quiz to test your knowledge
                     </p>
                     {error && (
-                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-red-600 text-sm">{error}</p>
+                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                       </div>
                     )}
                     <button
                       onClick={generateQuiz}
                       disabled={generating === "quiz"}
-                      className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center mx-auto"
+                      className="bg-purple-600 dark:bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 disabled:opacity-50 flex items-center mx-auto"
                     >
                       {generating === "quiz" ? (
                         <>
