@@ -211,7 +211,7 @@ export default function Home() {
             <span className="ml-2 text-lg sm:text-xl font-bold">AI Study Partner</span>
           </div>
           <p className="text-sm sm:text-base text-gray-400">
-            © 2024 AI Study Partner. All rights reserved.
+            © 2025 AI Study Partner. All rights reserved.
           </p>
         </div>
       </footer>
