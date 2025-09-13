@@ -31,14 +31,28 @@ type HuggingFaceResponse struct {
 
 // GenerateSummary creates a summary of the given text using AI
 func GenerateSummary(content string) (string, error) {
+	// Validate input content
+	if strings.TrimSpace(content) == "" {
+		return "", fmt.Errorf("content cannot be empty")
+	}
+
 	// Try AI services if available, otherwise create a simple summary
 	summary, err := callHuggingFace("microsoft/DialoGPT-medium", content)
 	if err != nil {
+		// Log the error for debugging
+		fmt.Printf("HuggingFace API failed: %v, falling back to simple summary\n", err)
 		// Fallback to simple text summarization
 		return createSimpleSummary(content), nil
 	}
 
-	return strings.TrimSpace(summary), nil
+	// Validate the AI response
+	summary = strings.TrimSpace(summary)
+	if summary == "" {
+		fmt.Printf("AI returned empty summary, falling back to simple summary\n")
+		return createSimpleSummary(content), nil
+	}
+
+	return summary, nil
 }
 
 // GenerateFlashcards creates flashcards from the given text
@@ -140,12 +154,12 @@ func callHuggingFace(model, prompt string) (string, error) {
 
 	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("https://api-inference.huggingface.co/models/%s", model), bytes.NewBuffer(jsonData))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -158,18 +172,24 @@ func callHuggingFace(model, prompt string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to make request: %w", err)
 	}
 	defer resp.Body.Close()
 
+	// Check for HTTP errors
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("HuggingFace API error: status %d, body: %s", resp.StatusCode, string(body))
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read response: %w", err)
 	}
 
 	var hfResp []HuggingFaceResponse
 	if err := json.Unmarshal(body, &hfResp); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
 	if len(hfResp) > 0 {

@@ -51,9 +51,11 @@ export default function StudyPage() {
   const generateSummary = async () => {
     try {
       setGenerating("summary");
+      setError(null); // Clear any previous errors
       const summaryData = await apiClient.generateSummary(noteId);
       setSummary(summaryData);
     } catch (err) {
+      console.error("Summary generation error:", err);
       setError(
         err instanceof Error ? err.message : "Failed to generate summary"
       );
@@ -227,6 +229,11 @@ export default function StudyPage() {
                     <p className="text-gray-600 mb-6">
                       Generate an AI-powered summary of your notes
                     </p>
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-red-600 text-sm">{error}</p>
+                      </div>
+                    )}
                     <button
                       onClick={generateSummary}
                       disabled={generating === "summary"}

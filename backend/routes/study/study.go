@@ -2,6 +2,7 @@ package study
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"studypartner/db"
@@ -103,6 +104,8 @@ func generateSummary(database *sql.DB) gin.HandlerFunc {
 		).Scan(&summary.ID, &summary.NoteID, &summary.Content, &summary.CreatedAt, &summary.UpdatedAt)
 
 		if err != nil {
+			// Log the actual error for debugging
+			fmt.Printf("Failed to save summary for note %s: %v\n", noteID, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save summary"})
 			return
 		}
