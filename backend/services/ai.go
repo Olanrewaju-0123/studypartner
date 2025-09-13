@@ -10,16 +10,6 @@ import (
 	"strings"
 )
 
-type OllamaRequest struct {
-	Model  string `json:"model"`
-	Prompt string `json:"prompt"`
-	Stream bool   `json:"stream"`
-}
-
-type OllamaResponse struct {
-	Response string `json:"response"`
-	Done     bool   `json:"done"`
-}
 
 type HuggingFaceRequest struct {
 	Inputs string `json:"inputs"`
@@ -73,10 +63,12 @@ Summary:`, content)
 // GenerateFlashcards creates flashcards from the given text
 func GenerateFlashcards(content string) ([]FlashcardData, error) {
 	// Try AI services if available, otherwise create simple flashcards
-	prompt := fmt.Sprintf(`Create 5 educational flashcards from the following text. Each flashcard should have a clear, specific question and a concise, accurate answer. Format the response as valid JSON with this exact structure:
+	prompt := fmt.Sprintf(`Create 6-8 comprehensive educational flashcards from the following text. Each flashcard should have a clear, specific question and a detailed, accurate answer. Make questions diverse and cover different aspects of the content. Format the response as valid JSON with this exact structure:
 [
   {"question": "What is the main topic discussed?", "answer": "The main topic is..."},
-  {"question": "What are the key concepts?", "answer": "The key concepts include..."}
+  {"question": "What are the key concepts?", "answer": "The key concepts include..."},
+  {"question": "How does this work?", "answer": "This works by..."},
+  {"question": "What are the implications?", "answer": "The implications are..."}
 ]
 
 Text to create flashcards from:
@@ -136,11 +128,11 @@ Return only the JSON array, no additional text:`, content)
 // GenerateQuiz creates quiz questions from the given text
 func GenerateQuiz(content string) ([]QuizData, error) {
 	// Try AI services if available, otherwise create simple quiz
-	prompt := fmt.Sprintf(`Create 5 multiple choice quiz questions from the following text. Each question should have 4 options with one correct answer. Format the response as valid JSON with this exact structure:
+	prompt := fmt.Sprintf(`Create 6-8 comprehensive multiple choice quiz questions from the following text. Each question should have 4 unique, plausible options with one correct answer. Make questions diverse and cover different aspects of the content. Ensure all options are different and meaningful. Format the response as valid JSON with this exact structure:
 [
   {
     "question": "What is the main topic discussed?",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "options": ["The correct answer", "A plausible but wrong answer", "Another wrong option", "A third wrong option"],
     "answer": 0
   }
 ]
@@ -199,37 +191,6 @@ Return only the JSON array, no additional text:`, content)
 	return createSimpleQuiz(content), nil
 }
 
-// callOllama makes a request to the local Ollama API
-func callOllama(model, prompt string) (string, error) {
-	reqBody := OllamaRequest{
-		Model:  model,
-		Prompt: prompt,
-		Stream: false,
-	}
-
-	jsonData, err := json.Marshal(reqBody)
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := http.Post("http://localhost:11434/api/generate", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var ollamaResp OllamaResponse
-	if err := json.Unmarshal(body, &ollamaResp); err != nil {
-		return "", err
-	}
-
-	return ollamaResp.Response, nil
-}
 
 // callHuggingFace makes a request to HuggingFace API
 func callHuggingFace(model, prompt string) (string, error) {
@@ -360,21 +321,26 @@ func createSimpleFlashcards(content string) []FlashcardData {
 		}
 	}
 
-	// Create flashcards from meaningful sentences
+	// Create flashcards from meaningful sentences with diverse question types
+	questionTypes := []string{
+		"What is the main concept discussed in: %s?",
+		"Explain the key idea: %s?",
+		"What does this statement mean: %s?",
+		"How does this relate to the topic: %s?",
+		"What is the significance of: %s?",
+		"What are the implications of: %s?",
+		"What can we learn from: %s?",
+		"What is the purpose of: %s?",
+	}
+
 	for i, sentence := range processedSentences {
 		if i >= 8 { // Create up to 8 flashcards
 			break
 		}
 		
-		// Create different types of questions
-		var question string
-		if i%3 == 0 {
-			question = "What is the main point about: " + sentence[:min(40, len(sentence))] + "?"
-		} else if i%3 == 1 {
-			question = "Explain the concept: " + sentence[:min(35, len(sentence))] + "?"
-		} else {
-			question = "What does this statement mean: " + sentence[:min(45, len(sentence))] + "?"
-		}
+		// Use different question types for variety
+		questionType := questionTypes[i%len(questionTypes)]
+		question := fmt.Sprintf(questionType, sentence[:min(40, len(sentence))])
 		
 		flashcards = append(flashcards, FlashcardData{
 			Question: question,
@@ -386,10 +352,18 @@ func createSimpleFlashcards(content string) []FlashcardData {
 	if len(flashcards) == 0 {
 		words := strings.Fields(content)
 		if len(words) > 10 {
-			// Create flashcards from word chunks
+			// Create flashcards from word chunks with varied questions
 			chunkSize := len(words) / 5
 			if chunkSize < 5 {
 				chunkSize = 5
+			}
+			
+			chunkQuestions := []string{
+				"What is the main topic in this section: %s?",
+				"What concept is explained here: %s?",
+				"What information is provided about: %s?",
+				"What does this part discuss: %s?",
+				"What is the focus of this section: %s?",
 			}
 			
 			for i := 0; i < 5 && i*chunkSize < len(words); i++ {
@@ -397,8 +371,11 @@ func createSimpleFlashcards(content string) []FlashcardData {
 				end := min((i+1)*chunkSize, len(words))
 				chunk := strings.Join(words[start:end], " ")
 				
+				questionType := chunkQuestions[i%len(chunkQuestions)]
+				question := fmt.Sprintf(questionType, chunk[:min(30, len(chunk))])
+				
 				flashcards = append(flashcards, FlashcardData{
-					Question: fmt.Sprintf("What is discussed in this section: %s?", chunk[:min(30, len(chunk))]),
+					Question: question,
 					Answer:   chunk,
 				})
 			}
@@ -432,40 +409,61 @@ func createSimpleQuiz(content string) []QuizData {
 		}
 	}
 
-	// Create quiz questions from meaningful sentences
+	// Create quiz questions from meaningful sentences with diverse options
+	questionTemplates := []struct {
+		question string
+		options  []string
+	}{
+		{
+			question: "What is the main concept discussed in: %s?",
+			options:  []string{"The correct concept", "A related but different concept", "An unrelated concept", "A completely opposite concept"},
+		},
+		{
+			question: "Which statement best describes: %s?",
+			options:  []string{"The accurate description", "A partially correct description", "An incorrect description", "An irrelevant description"},
+		},
+		{
+			question: "What does this statement mean: %s?",
+			options:  []string{"The intended meaning", "A different interpretation", "A misunderstanding", "An unrelated meaning"},
+		},
+		{
+			question: "How does this relate to the topic: %s?",
+			options:  []string{"Directly related", "Indirectly related", "Not related", "Opposite to the topic"},
+		},
+		{
+			question: "What is the significance of: %s?",
+			options:  []string{"High significance", "Moderate significance", "Low significance", "No significance"},
+		},
+		{
+			question: "What are the implications of: %s?",
+			options:  []string{"Positive implications", "Negative implications", "Mixed implications", "No implications"},
+		},
+	}
+
 	for i, sentence := range processedSentences {
 		if i >= 6 { // Create up to 6 quiz questions
 			break
 		}
 		
-		// Create different types of questions
-		var question string
-		var options []string
+		// Use different question templates for variety
+		template := questionTemplates[i%len(questionTemplates)]
+		question := fmt.Sprintf(template.question, sentence[:min(40, len(sentence))])
 		
-		if i%3 == 0 {
-			question = fmt.Sprintf("What is the main point about: %s?", sentence[:min(40, len(sentence))])
-			options = []string{
-				sentence,
-				"This statement is incorrect",
-				"This is only partially true",
-				"This is not mentioned in the text",
-			}
-		} else if i%3 == 1 {
-			question = fmt.Sprintf("Which statement best describes: %s?", sentence[:min(35, len(sentence))])
-			options = []string{
-				sentence,
-				"The opposite of this statement",
-				"This is a false statement",
-				"This is not relevant to the topic",
-			}
+		// Create unique options based on the sentence content
+		options := make([]string, 4)
+		options[0] = sentence // Correct answer
+		
+		// Generate plausible but incorrect alternatives
+		words := strings.Fields(sentence)
+		if len(words) > 3 {
+			// Create alternatives by modifying the sentence
+			options[1] = strings.Join(words[:len(words)/2], " ") + " with different context"
+			options[2] = "This statement is partially accurate but incomplete"
+			options[3] = "This statement is not mentioned in the original text"
 		} else {
-			question = fmt.Sprintf("What does this mean: %s?", sentence[:min(45, len(sentence))])
-			options = []string{
-				sentence,
-				"This is a misunderstanding",
-				"This is partially correct",
-				"This is completely wrong",
-			}
+			// Use template options for short sentences
+			options = template.options
+			options[0] = sentence // Override first option with correct answer
 		}
 		
 		quiz = append(quiz, QuizData{
@@ -485,20 +483,34 @@ func createSimpleQuiz(content string) []QuizData {
 				chunkSize = 8
 			}
 			
+			chunkQuestions := []string{
+				"What is the main topic in this section: %s?",
+				"What concept is explained here: %s?",
+				"What information is provided about: %s?",
+				"What does this part discuss: %s?",
+				"What is the focus of this section: %s?",
+			}
+			
 			for i := 0; i < 5 && i*chunkSize < len(words); i++ {
 				start := i * chunkSize
 				end := min((i+1)*chunkSize, len(words))
 				chunk := strings.Join(words[start:end], " ")
 				
+				questionType := chunkQuestions[i%len(chunkQuestions)]
+				question := fmt.Sprintf(questionType, chunk[:min(30, len(chunk))])
+				
+				// Create unique options for each chunk
+				options := []string{
+					chunk,
+					fmt.Sprintf("This section discusses %s", words[min(i*2, len(words)-1)]),
+					"This information is not present in the text",
+					"This section covers a completely different topic",
+				}
+				
 				quiz = append(quiz, QuizData{
-					Question: fmt.Sprintf("What is discussed in this section: %s?", chunk[:min(30, len(chunk))]),
-					Options: []string{
-						chunk,
-						"This section discusses something else",
-						"This is not mentioned in the text",
-						"This is a different topic entirely",
-					},
-					Answer: 0,
+					Question: question,
+					Options:  options,
+					Answer:   0,
 				})
 			}
 		} else {
