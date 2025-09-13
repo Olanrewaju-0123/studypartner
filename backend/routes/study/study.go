@@ -11,6 +11,7 @@ import (
 	"studypartner/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 func SetupStudyRoutes(router *gin.RouterGroup, database *sql.DB) {
@@ -202,6 +203,8 @@ func generateFlashcards(database *sql.DB) gin.HandlerFunc {
 				noteID, fc.Question, fc.Answer,
 			).Scan(&flashcard.ID, &flashcard.NoteID, &flashcard.Question, &flashcard.Answer, &flashcard.CreatedAt)
 			if err != nil {
+				// Log the actual error for debugging
+				fmt.Printf("Failed to save flashcard for note %s: %v\n", noteID, err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save flashcard"})
 				return
 			}
@@ -242,7 +245,7 @@ func getQuiz(database *sql.DB) gin.HandlerFunc {
 		var quizQuestions []db.Quiz
 		for rows.Next() {
 			var quiz db.Quiz
-			err := rows.Scan(&quiz.ID, &quiz.NoteID, &quiz.Question, &quiz.Options, &quiz.Answer, &quiz.CreatedAt)
+			err := rows.Scan(&quiz.ID, &quiz.NoteID, &quiz.Question, pq.Array(&quiz.Options), &quiz.Answer, &quiz.CreatedAt)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan quiz question"})
 				return
@@ -290,9 +293,11 @@ func generateQuiz(database *sql.DB) gin.HandlerFunc {
 			var quiz db.Quiz
 			err = database.QueryRow(
 				"INSERT INTO quizzes (note_id, question, options, answer) VALUES ($1, $2, $3, $4) RETURNING id, note_id, question, options, answer, created_at",
-				noteID, q.Question, q.Options, q.Answer,
-			).Scan(&quiz.ID, &quiz.NoteID, &quiz.Question, &quiz.Options, &quiz.Answer, &quiz.CreatedAt)
+				noteID, q.Question, pq.Array(q.Options), q.Answer,
+			).Scan(&quiz.ID, &quiz.NoteID, &quiz.Question, pq.Array(&quiz.Options), &quiz.Answer, &quiz.CreatedAt)
 			if err != nil {
+				// Log the actual error for debugging
+				fmt.Printf("Failed to save quiz question for note %s: %v\n", noteID, err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save quiz question"})
 				return
 			}
